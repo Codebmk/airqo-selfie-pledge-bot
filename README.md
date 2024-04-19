@@ -20,6 +20,6 @@ This bot project is using Node.js version 14.
    node app.js
    ```
 
-By following these steps, you can quickly set up and run the bot project, enabling you to explore its capabilities and customize it as needed.
+---
 
 For any further assistance, feel free to reach out.
