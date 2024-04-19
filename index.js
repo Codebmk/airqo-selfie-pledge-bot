@@ -95,42 +95,27 @@ bot.on("message", async (msg) => {
 
         // Resize and position the selfie to occupy the remaining height of the container
 
-        bot
-          .sendMessage(chatId, "Generating poster...")
-          .then(async () => {
-            selfie.cover(955, 891);
-            // Apply rounded corners to the selfie
-            mask2.resize(selfie.bitmap.width, selfie.bitmap.height);
-            selfie.mask(mask2, 0, 0);
+        selfie.cover(955, 891);
+        // Apply rounded corners to the selfie
+        mask2.resize(selfie.bitmap.width, selfie.bitmap.height);
+        selfie.mask(mask2, 0, 0);
 
-            container.composite(pledgeBox, 45, 50).composite(selfie, 62, 255);
+        container.composite(pledgeBox, 45, 50).composite(selfie, 62, 255);
 
-            // Resize and compress the final image
-            container.resize(1080, 1350);
-            // container.quality(60); // Adjust the quality as needed
+        // Resize and compress the final image
+        container.resize(1080, 1350);
+        // container.quality(60); // Adjust the quality as needed
 
-            // Send the image back to the user
-            const photoURL = await container.getBufferAsync(Jimp.MIME_JPEG);
+        // Send the image back to the user
+        const photoURL = await container.getBufferAsync(Jimp.MIME_JPEG);
 
-            bot.sendPhoto(chatId, photoURL).catch((error) => {
-              console.error("Error sending photo:", error);
-              bot.sendMessage(
-                chatId,
-                "An error occurred while sending the photo."
-              );
-            });
-            bot.sendMessage(chatId, "Let's go again!\n\n Enter your pledge.");
-            awaitingPledge = true;
-  awaitingSelfie = false;
-
-          })
-          .catch((error) => {
-            console.error("Error sending message:", error);
-            bot.sendMessage(
-              chatId,
-              "An error occurred while processing the image. Type /start to give it another go"
-            );
-          });
+        bot.sendPhoto(chatId, photoURL).catch((error) => {
+          console.error("Error sending photo:", error);
+          bot.sendMessage(chatId, "An error occurred while sending the photo.");
+        });
+        awaitingPledge = false;
+        awaitingSelfie = false;
+        pledge = "";
       } catch (err) {
         console.error("BUFFER ERROR:", err);
         bot.sendMessage(
