@@ -114,18 +114,18 @@ bot.on("callback_query", (query) => {
   const selectedLocation = query.data.toLowerCase(); // Retrieve the selected location from the callback data and convert to lowercase
   const locationBackgrounds = {
     kampala: "kampala_background.jpg",
-    fort_portal: "fort_portal_background.jpg",
-    gulu: "gulu_background.jpg",
-    jinja: "jinja_background.jpg",
-    kira: "kira_background.jpg",
-    kabale: "kabale_background.jpg",
-    nairobi: "nairobi_background.jpg",
-    kisumu: "kisumu_background.jpg",
-    yaounde: "yaounde_background.jpg",
-    douala: "douala_background.jpg",
-    lagos: "lagos_background.jpg",
-    accra: "accra_background.jpg",
-    bujumbura: "bujumbura_background.jpg",
+    fort_portal: "kampala_background.jpg",
+    gulu: "kampala_background.jpg",
+    jinja: "kampala_background.jpg",
+    kira: "kampala_background.jpg",
+    kabale: "kampala_background.jpg",
+    nairobi: "kampala_background.jpg",
+    kisumu: "kampala_background.jpg",
+    yaounde: "kampala_background.jpg",
+    douala: "kampala_background.jpg",
+    lagos: "kampala_background.jpg",
+    accra: "kampala_background.jpg",
+    bujumbura: "kampala_background.jpg",
   };
   const backgroundImage = locationBackgrounds[selectedLocation];
 
