@@ -251,6 +251,8 @@ bot.on("message", async (msg) => {
           context.awaitingPledge = false;
           context.awaitingSelfie = false;
           context.pledge = "";
+          context.location = "";
+          context.backgroundImage = "";
           userContext.set(chatId, context);
         }
       } catch (err) {
