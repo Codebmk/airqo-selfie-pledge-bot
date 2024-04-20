@@ -5,54 +5,187 @@ const Jimp = require("jimp");
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
-let pledge = "";
-let chatId = "";
-let awaitingPledge = true;
-let awaitingSelfie = false;
-let isFirstLaunch = true;
+const userContext = new Map();
+
+const capitalise = (string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
 
 bot.onText(/\/start/, (msg) => {
-  chatId = msg.chat.id;
-  if (isFirstLaunch) {
+  const chatId = msg.chat.id;
+  if (!userContext.has(chatId)) {
+    userContext.set(chatId, {
+      awaitingLocation: true,
+      awaitingPledge: false,
+      awaitingSelfie: false,
+      isFirstLaunch: true,
+      pledge: "",
+      location: "",
+      backgroundImage: "",
+    });
+  }
+  const context = userContext.get(chatId);
+  if (context.isFirstLaunch) {
     bot.sendMessage(
       chatId,
-      "Welcome to the AirQo #AQAWK24 Pledge Bot! Here's what you can do with this bot:\n\n" +
-        "1. Send a pledge by typing it as a message.\n" +
-        "2. Send a selfie to accompany your pledge.\n\n" +
-        "Example:\n" +
-        "To send a pledge: 'I pledge to protect the environment.'\n" +
-        "To send a selfie: Simply upload a selfie photo.\n\n" +
-        "Let's get started!\n\n" +
-        "Please enter your pledge."
+      "Welcome to the AirQo #AQAW24 Pledge Bot! Here's what you can do:\n\n1. Select your location from the options provided.\n2. Make a pledge to improve air quality in your area.\n3. Upload a selfie or choose a photo from your gallery.\n4. Download a cool poster to share on your socials.\n\nLet's get started! Select your location:",
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Kampala", callback_data: "kampala" },
+              {
+                text: "Fort Portal Tourism City",
+                callback_data: "fort_portal",
+              },
+            ],
+            [
+              { text: "Gulu Regional City", callback_data: "gulu" },
+              { text: "Jinja Industrial City", callback_data: "jinja" },
+            ],
+            [
+              { text: "Kira Municipality", callback_data: "kira" },
+              { text: "Kabale Municipality", callback_data: "kabale" },
+            ],
+            [
+              { text: "Nairobi", callback_data: "nairobi" },
+              { text: "Kisumu", callback_data: "kisumu" },
+            ],
+            [
+              { text: "Yaounde", callback_data: "yaounde" },
+              { text: "Douala", callback_data: "douala" },
+            ],
+            [
+              { text: "Lagos", callback_data: "lagos" },
+              { text: "Accra", callback_data: "accra" },
+            ],
+            [{ text: "Bujumbura", callback_data: "bujumbura" }],
+          ],
+        },
+      }
     );
-    isFirstLaunch = false;
+    context.isFirstLaunch = false;
   } else {
-    bot.sendMessage(chatId, "Please enter your pledge.");
+    bot.sendMessage(
+      chatId,
+      "Please select your location from the options provided:",
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Kampala", callback_data: "kampala" },
+              {
+                text: "Fort Portal Tourism City",
+                callback_data: "fort_portal",
+              },
+            ],
+            [
+              { text: "Gulu Regional City", callback_data: "gulu" },
+              { text: "Jinja Industrial City", callback_data: "jinja" },
+            ],
+            [
+              { text: "Kira Municipality", callback_data: "kira" },
+              { text: "Kabale Municipality", callback_data: "kabale" },
+            ],
+            [
+              { text: "Nairobi", callback_data: "nairobi" },
+              { text: "Kisumu", callback_data: "kisumu" },
+            ],
+            [
+              { text: "Yaounde", callback_data: "yaounde" },
+              { text: "Douala", callback_data: "douala" },
+            ],
+            [
+              { text: "Lagos", callback_data: "lagos" },
+              { text: "Accra", callback_data: "accra" },
+            ],
+            [{ text: "Bujumbura", callback_data: "bujumbura" }],
+          ],
+        },
+      }
+    );
   }
-  awaitingPledge = true;
-  awaitingSelfie = false;
+  userContext.set(chatId, context);
+});
+
+// Handle location selection
+bot.on("callback_query", (query) => {
+  const chatId = query.message.chat.id;
+  const selectedLocation = query.data.toLowerCase(); // Retrieve the selected location from the callback data and convert to lowercase
+  const locationBackgrounds = {
+    kampala: "kampala_background.jpg",
+    fort_portal: "fort_portal_background.jpg",
+    gulu: "gulu_background.jpg",
+    jinja: "jinja_background.jpg",
+    kira: "kira_background.jpg",
+    kabale: "kabale_background.jpg",
+    nairobi: "nairobi_background.jpg",
+    kisumu: "kisumu_background.jpg",
+    yaounde: "yaounde_background.jpg",
+    douala: "douala_background.jpg",
+    lagos: "lagos_background.jpg",
+    accra: "accra_background.jpg",
+    bujumbura: "bujumbura_background.jpg",
+  };
+  const backgroundImage = locationBackgrounds[selectedLocation];
+
+  if (backgroundImage) {
+    const context = userContext.get(chatId);
+    // Update the context with the selected location and background image
+    context.location = selectedLocation;
+    context.backgroundImage = backgroundImage;
+
+    // Remove the inline keyboard after the user has made a selection
+    bot.editMessageReplyMarkup(
+      { inline_keyboard: [] },
+      { chat_id: chatId, message_id: query.message.message_id }
+    );
+
+    // Proceed to the next step (asking for the pledge)
+    bot.sendMessage(
+      chatId,
+      `${capitalise(context.location)}, great! Please enter your pledge.`
+    );
+    context.awaitingLocation = false;
+    context.awaitingPledge = true;
+    userContext.set(chatId, context);
+  } else {
+    // Handle invalid location selection
+    bot.sendMessage(
+      chatId,
+      "Please select a valid location from the options provided."
+    );
+  }
 });
 
 bot.on("message", async (msg) => {
-  if (!chatId) {
+  const chatId = msg.chat.id;
+  if (!userContext.has(chatId)) {
     return;
   }
-  if (awaitingPledge && msg.text && !msg.photo) {
-    pledge = msg.text;
-    bot.sendMessage(chatId, "Please send your selfie.");
-    awaitingPledge = false;
-    awaitingSelfie = true;
-  } else if (awaitingSelfie && msg.photo) {
+  const context = userContext.get(chatId);
+  if (context.awaitingPledge && msg.text && !msg.photo) {
+    context.pledge = msg.text;
+    bot.sendMessage(
+      chatId,
+      "Please send your selfie or choose your favorite photo from your gallery."
+    );
+    context.awaitingPledge = false;
+    context.awaitingSelfie = true;
+    userContext.set(chatId, context);
+  } else if (context.awaitingSelfie && msg.photo) {
     const photoId = msg.photo[msg.photo.length - 1].file_id;
-    bot.getFileLink(photoId).then(async (link) => {
+    try {
+      bot.sendMessage(chatId, "Generating your poster in a sec...💪🏾");
+      const link = await bot.getFileLink(photoId);
       try {
         const selfie = await Jimp.read(link);
-        const container = await Jimp.read("assets/background.jpg");
+        const container = await Jimp.read(`assets/${context.backgroundImage}`);
         // masks should have a bg of white
         const mask2 = await Jimp.read("assets/mask2.png");
         let pledgeFont;
         let paddingY;
-        if (pledge.length > 25) {
+        if (context.pledge.length > 25) {
           pledgeFont = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
           paddingY = 50;
         } else {
@@ -67,7 +200,7 @@ bot.on("message", async (msg) => {
         const maxTextWidth = 0.8 * pledgeBoxWidth;
         const pledgeTextHeight = Jimp.measureTextHeight(
           pledgeFont,
-          pledge,
+          context.pledge,
           maxTextWidth
         );
 
@@ -85,7 +218,7 @@ bot.on("message", async (msg) => {
           textPositionX,
           textPositionY, // Center the text vertically
           {
-            text: pledge,
+            text: context.pledge,
             alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
             alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE, // Align text vertically to the middle
           },
@@ -109,13 +242,17 @@ bot.on("message", async (msg) => {
         // Send the image back to the user
         const photoURL = await container.getBufferAsync(Jimp.MIME_JPEG);
 
-        bot.sendPhoto(chatId, photoURL).catch((error) => {
+        try {
+          await bot.sendPhoto(chatId, photoURL);
+        } catch (error) {
           console.error("Error sending photo:", error);
           bot.sendMessage(chatId, "An error occurred while sending the photo.");
-        });
-        awaitingPledge = false;
-        awaitingSelfie = false;
-        pledge = "";
+        } finally {
+          context.awaitingPledge = false;
+          context.awaitingSelfie = false;
+          context.pledge = "";
+          userContext.set(chatId, context);
+        }
       } catch (err) {
         console.error("BUFFER ERROR:", err);
         bot.sendMessage(
@@ -123,12 +260,12 @@ bot.on("message", async (msg) => {
           "An error occurred while processing the image."
         );
       }
-    });
-    awaitingPledge = false;
-    awaitingSelfie = false;
-  } else if (awaitingPledge) {
+    } catch (error) {
+      bot.sendMessage(chatId, "An error occurred while processing the image.");
+    }
+  } else if (context.awaitingPledge) {
     bot.sendMessage(chatId, "Please enter a valid text pledge.");
-  } else if (awaitingSelfie) {
+  } else if (context.awaitingSelfie) {
     bot.sendMessage(chatId, "Please send a valid selfie image.");
   }
 });
