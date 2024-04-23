@@ -1,8 +1,15 @@
 require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 const Jimp = require("jimp");
+const express = require("express");
+const app = express();
+const port = 8080;
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`);
+});
+
+const token = process.env.BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
 const userContext = new Map();
@@ -33,33 +40,20 @@ bot.onText(/\/start/, (msg) => {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: "Kampala", callback_data: "kampala" },
+              { text: "Uganda", callback_data: "uganda" },
               {
-                text: "Fort Portal Tourism City",
-                callback_data: "fort_portal",
+                text: "Nigeria",
+                callback_data: "nigeria",
               },
             ],
             [
-              { text: "Gulu Regional City", callback_data: "gulu" },
-              { text: "Jinja Industrial City", callback_data: "jinja" },
+              { text: "Burundi", callback_data: "burundi" },
+              { text: "Ghana", callback_data: "ghana" },
             ],
             [
-              { text: "Kira Municipality", callback_data: "kira" },
-              { text: "Kabale Municipality", callback_data: "kabale" },
+              { text: "Kenya", callback_data: "kenya" },
+              { text: "Cameroon", callback_data: "cameroon" },
             ],
-            [
-              { text: "Nairobi", callback_data: "nairobi" },
-              { text: "Kisumu", callback_data: "kisumu" },
-            ],
-            [
-              { text: "Yaounde", callback_data: "yaounde" },
-              { text: "Douala", callback_data: "douala" },
-            ],
-            [
-              { text: "Lagos", callback_data: "lagos" },
-              { text: "Accra", callback_data: "accra" },
-            ],
-            [{ text: "Bujumbura", callback_data: "bujumbura" }],
           ],
         },
       }
@@ -73,33 +67,20 @@ bot.onText(/\/start/, (msg) => {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: "Kampala", callback_data: "kampala" },
+              { text: "Uganda", callback_data: "uganda" },
               {
-                text: "Fort Portal Tourism City",
-                callback_data: "fort_portal",
+                text: "Nigeria",
+                callback_data: "nigeria",
               },
             ],
             [
-              { text: "Gulu Regional City", callback_data: "gulu" },
-              { text: "Jinja Industrial City", callback_data: "jinja" },
+              { text: "Burundi", callback_data: "burundi" },
+              { text: "Ghana", callback_data: "ghana" },
             ],
             [
-              { text: "Kira Municipality", callback_data: "kira" },
-              { text: "Kabale Municipality", callback_data: "kabale" },
+              { text: "Kenya", callback_data: "kenya" },
+              { text: "Cameroon", callback_data: "cameroon" },
             ],
-            [
-              { text: "Nairobi", callback_data: "nairobi" },
-              { text: "Kisumu", callback_data: "kisumu" },
-            ],
-            [
-              { text: "Yaounde", callback_data: "yaounde" },
-              { text: "Douala", callback_data: "douala" },
-            ],
-            [
-              { text: "Lagos", callback_data: "lagos" },
-              { text: "Accra", callback_data: "accra" },
-            ],
-            [{ text: "Bujumbura", callback_data: "bujumbura" }],
           ],
         },
       }
@@ -113,19 +94,12 @@ bot.on("callback_query", (query) => {
   const chatId = query.message.chat.id;
   const selectedLocation = query.data.toLowerCase(); // Retrieve the selected location from the callback data and convert to lowercase
   const locationBackgrounds = {
-    kampala: "kampala_background.jpg",
-    fort_portal: "kampala_background.jpg",
-    gulu: "kampala_background.jpg",
-    jinja: "kampala_background.jpg",
-    kira: "kampala_background.jpg",
-    kabale: "kampala_background.jpg",
-    nairobi: "kampala_background.jpg",
-    kisumu: "kampala_background.jpg",
-    yaounde: "kampala_background.jpg",
-    douala: "kampala_background.jpg",
-    lagos: "kampala_background.jpg",
-    accra: "kampala_background.jpg",
-    bujumbura: "kampala_background.jpg",
+    uganda: "uganda_background.jpg",
+    nigeria: "nigeria_background.jpg",
+    burundi: "burundi_background.jpg",
+    ghana: "ghana_background.jpg",
+    kenya: "kenya_background.jpg",
+    cameroon: "cameroon_background.jpg",
   };
   const backgroundImage = locationBackgrounds[selectedLocation];
 
@@ -165,7 +139,7 @@ bot.on("message", async (msg) => {
   }
   const context = userContext.get(chatId);
   if (context.awaitingPledge && msg.text && !msg.photo) {
-    context.pledge = msg.text;
+    context.pledge = msg.text.replace(/[\uD800-\uDFFF]./g, "");
     bot.sendMessage(
       chatId,
       "Please send your selfie or choose your favorite photo from your gallery."
@@ -173,6 +147,7 @@ bot.on("message", async (msg) => {
     context.awaitingPledge = false;
     context.awaitingSelfie = true;
     userContext.set(chatId, context);
+    console.log("Context:", context);
   } else if (context.awaitingSelfie && msg.photo) {
     const photoId = msg.photo[msg.photo.length - 1].file_id;
     try {
@@ -248,12 +223,8 @@ bot.on("message", async (msg) => {
           console.error("Error sending photo:", error);
           bot.sendMessage(chatId, "An error occurred while sending the photo.");
         } finally {
-          context.awaitingPledge = false;
-          context.awaitingSelfie = false;
-          context.pledge = "";
-          context.location = "";
-          context.backgroundImage = "";
-          userContext.set(chatId, context);
+          // set chatId to empty
+          userContext.delete(chatId);
         }
       } catch (err) {
         console.error("BUFFER ERROR:", err);
