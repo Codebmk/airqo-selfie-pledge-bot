@@ -255,6 +255,9 @@ bot.on("message", async (msg) => {
       }
     } catch (error) {
       bot.sendMessage(chatId, "An error occurred while processing the image.");
+    } finally {
+      userContext.delete(chatId);
+      bot.sendMessage(chatId, "Type `/start` to create a new poster!");
     }
   } else if (context.awaitingPledge) {
     bot.sendMessage(chatId, "Please enter a valid text pledge.");
