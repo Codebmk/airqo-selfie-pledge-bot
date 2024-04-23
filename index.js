@@ -3,16 +3,12 @@ const TelegramBot = require("node-telegram-bot-api");
 const Jimp = require("jimp");
 const express = require("express");
 const bodyParser = require("body-parser");
-// const { PubSub } = require("@google-cloud/pubsub");
 
 const port = 8080;
 
 const token = process.env.BOT_TOKEN;
 const appUrl = process.env.APP_URL;
-// const projectId = process.env.CLOUD_RUN_PROJECT_ID;
 const bot = new TelegramBot(token, { polling: true });
-// Instantiates a client
-// const pubsub = new PubSub({ projectId });
 
 const app = express();
 app.use(bodyParser.json());
@@ -26,41 +22,6 @@ app.post(`/bot${token}`, (req, res) => {
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
 });
-
-// const createTopicAndSubscription = async () => {
-//   const subscriptionName = "postprocessing-subscription";
-//   const topicName = "matted-images";
-
-//   try {
-//     // Check if the topic already exists
-//     const topicExists = await pubsub.topic(topicName).exists();
-//     if (!topicExists[0]) {
-//       // Create a new topic
-//       const [topic] = await pubsub.createTopic(topicName);
-//       console.log(`Topic ${topic.name} created.`);
-//     } else {
-//       console.log(`Topic ${topicName} already exists.`);
-//     }
-
-//     // Check if the subscription already exists
-//     const subscriptionExists = await pubsub
-//       .subscription(subscriptionName)
-//       .exists();
-//     if (!subscriptionExists[0]) {
-//       // Create a new subscription on the topic
-//       const subscription = await pubsub
-//         .topic(topicName)
-//         .createSubscription(subscriptionName);
-//       console.log(`Subscription ${subscription.name} created.`);
-//     } else {
-//       console.log(`Subscription ${subscriptionName} already exists.`);
-//     }
-//   } catch (error) {
-//     console.error("Error creating topic and subscription:", error);
-//   }
-// };
-
-// createTopicAndSubscription();
 
 const userContext = new Map();
 
@@ -258,7 +219,7 @@ bot.on("message", async (msg) => {
 
         // Resize and position the selfie to occupy the remaining height of the container
 
-        console.log("RESIZING IMAGE CONTAINER...")
+        console.log("RESIZING IMAGE CONTAINER...");
 
         selfie.cover(955, 891);
         // Apply rounded corners to the selfie
@@ -271,7 +232,7 @@ bot.on("message", async (msg) => {
         container.resize(1080, 1350);
         // container.quality(60); // Adjust the quality as needed
 
-        console.log("BUFFERING...")
+        console.log("BUFFERING...");
 
         // Send the image back to the user
         const photoURL = await container.getBufferAsync(Jimp.MIME_JPEG);
@@ -301,138 +262,3 @@ bot.on("message", async (msg) => {
     bot.sendMessage(chatId, "Please send a valid selfie image.");
   }
 });
-
-// // Get the subscription and start listening for messages
-// const subscription = pubsub.subscription("postprocessing-subscription");
-// subscription.on("message", async (msg) => {
-//   try {
-//     // Process the matted image
-//     const mattedImage = message.data;
-//     console.log("MaT:", mattedImage);
-
-//     const chatId = msg.chat.id;
-//     if (!userContext.has(chatId)) {
-//       return;
-//     }
-//     const context = userContext.get(chatId);
-//     if (context.awaitingPledge && msg.text && !msg.photo) {
-//       context.pledge = msg.text.replace(/[\uD800-\uDFFF]./g, "");
-//       bot.sendMessage(
-//         chatId,
-//         "Please send your selfie or choose your favorite photo from your gallery."
-//       );
-//       context.awaitingPledge = false;
-//       context.awaitingSelfie = true;
-//       userContext.set(chatId, context);
-//       console.log("Context:", context);
-//     } else if (context.awaitingSelfie && msg.photo) {
-//       const photoId = msg.photo[msg.photo.length - 1].file_id;
-//       try {
-//         bot.sendMessage(
-//           chatId,
-//           "Thank you for the photo👍! Please be patient while I create your sticker..."
-//         );
-//         const link = await bot.getFileLink(photoId);
-//         try {
-//           const selfie = await Jimp.read(link);
-//           const container = await Jimp.read(
-//             `assets/${context.backgroundImage}`
-//           );
-//           // masks should have a bg of white
-//           const mask2 = await Jimp.read("assets/mask2.png");
-//           let pledgeFont;
-//           let paddingY;
-//           if (context.pledge.length > 25) {
-//             pledgeFont = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
-//             paddingY = 50;
-//           } else {
-//             pledgeFont = await Jimp.loadFont(Jimp.FONT_SANS_64_BLACK);
-//             paddingY = 0;
-//           }
-
-//           container.cover(1080, 1350);
-
-//           // Calculate the dimensions and position of the pledge text within the pledgeBox
-//           const pledgeBoxWidth = 1080 - 110;
-//           const maxTextWidth = 0.8 * pledgeBoxWidth;
-//           const pledgeTextHeight = Jimp.measureTextHeight(
-//             pledgeFont,
-//             context.pledge,
-//             maxTextWidth
-//           );
-
-//           // Create pledge box with padding around the pledge text
-//           const pledgeBoxHeight = 156;
-//           const pledgeBox = new Jimp(
-//             pledgeBoxWidth,
-//             pledgeBoxHeight,
-//             "transparent"
-//           );
-//           const textPositionX = (pledgeBoxWidth - maxTextWidth) / 2; // Calculate the x position for centering the text
-//           const textPositionY = (pledgeBoxHeight - pledgeTextHeight) / 2; // Calculate the y position for centering the text vertically
-//           pledgeBox.print(
-//             pledgeFont,
-//             textPositionX,
-//             textPositionY, // Center the text vertically
-//             {
-//               text: context.pledge,
-//               alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-//               alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE, // Align text vertically to the middle
-//             },
-//             maxTextWidth,
-//             pledgeTextHeight
-//           );
-
-//           // Resize and position the selfie to occupy the remaining height of the container
-
-//           selfie.cover(955, 891);
-//           // Apply rounded corners to the selfie
-//           mask2.resize(selfie.bitmap.width, selfie.bitmap.height);
-//           selfie.mask(mask2, 0, 0);
-
-//           container.composite(pledgeBox, 45, 50).composite(selfie, 62, 255);
-
-//           // Resize and compress the final image
-//           container.resize(1080, 1350);
-//           // container.quality(60); // Adjust the quality as needed
-
-//           // Send the image back to the user
-//           const photoURL = await container.getBufferAsync(Jimp.MIME_JPEG);
-
-//           try {
-//             await bot.sendPhoto(chatId, photoURL);
-//           } catch (error) {
-//             console.error("Error sending photo:", error);
-//             bot.sendMessage(
-//               chatId,
-//               "An error occurred while sending the photo."
-//             );
-//           } finally {
-//             // set chatId to empty
-//             userContext.delete(chatId);
-//           }
-//         } catch (err) {
-//           console.error("BUFFER ERROR:", err);
-//           bot.sendMessage(
-//             chatId,
-//             "An error occurred while processing the image."
-//           );
-//         }
-//       } catch (error) {
-//         bot.sendMessage(
-//           chatId,
-//           "An error occurred while processing the image."
-//         );
-//       }
-//     } else if (context.awaitingPledge) {
-//       bot.sendMessage(chatId, "Please enter a valid text pledge.");
-//     } else if (context.awaitingSelfie) {
-//       bot.sendMessage(chatId, "Please send a valid selfie image.");
-//     }
-//   } catch (error) {
-//     console.error("Error:", error);
-//   } finally {
-//     console.log("Acking message...")
-//     message.ack();
-//   }
-// });
