@@ -428,6 +428,7 @@ subscription.on("message", async (msg) => {
   } catch (error) {
     console.error("Error:", error);
   } finally {
+    console.log("Acking message...")
     message.ack();
   }
 });
