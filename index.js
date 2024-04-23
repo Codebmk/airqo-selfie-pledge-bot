@@ -2,14 +2,11 @@ require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 const Jimp = require("jimp");
 const express = require("express");
-const app = express();
+const bodyParser = require('body-parser');
 const port = 8080;
 
-app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
-});
-
 const token = process.env.BOT_TOKEN;
+const appUrl = process.env.APP_URL;
 const bot = new TelegramBot(token, { polling: true });
 
 const userContext = new Map();
@@ -17,6 +14,21 @@ const userContext = new Map();
 const capitalise = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
+
+bot.setWebHook(`${appUrl}/bot${token}`);
+
+const app = express();
+app.use(bodyParser.json());
+
+// Define a handler for the webhook
+app.post(`/bot${token}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`);
+});
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
