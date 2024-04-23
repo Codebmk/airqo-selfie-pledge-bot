@@ -151,7 +151,7 @@ bot.on("message", async (msg) => {
   } else if (context.awaitingSelfie && msg.photo) {
     const photoId = msg.photo[msg.photo.length - 1].file_id;
     try {
-      bot.sendMessage(chatId, "Generating your poster in a sec...💪🏾");
+      bot.sendMessage(chatId, "Please wait while we generate your poster. It might take a while...💪🏾");
       const link = await bot.getFileLink(photoId);
       try {
         const selfie = await Jimp.read(link);
