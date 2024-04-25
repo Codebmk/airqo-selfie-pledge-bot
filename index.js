@@ -60,11 +60,14 @@ bot.onText(/\/start/, (msg) => {
               },
             ],
             [
+              { text: "Kenya", callback_data: "kenya" },
+              { text: "USA", callback_data: "usa" },
+            ],
+            [
               { text: "Burundi", callback_data: "burundi" },
               { text: "Ghana", callback_data: "ghana" },
             ],
             [
-              { text: "Kenya", callback_data: "kenya" },
               { text: "Cameroon", callback_data: "cameroon" },
             ],
           ],
@@ -87,11 +90,14 @@ bot.onText(/\/start/, (msg) => {
               },
             ],
             [
+              { text: "Kenya", callback_data: "kenya" },
+              { text: "USA", callback_data: "usa" },
+            ],
+            [
               { text: "Burundi", callback_data: "burundi" },
               { text: "Ghana", callback_data: "ghana" },
             ],
             [
-              { text: "Kenya", callback_data: "kenya" },
               { text: "Cameroon", callback_data: "cameroon" },
             ],
           ],
@@ -113,6 +119,7 @@ bot.on("callback_query", (query) => {
     ghana: "ghana_background.jpg",
     kenya: "kenya_background.jpg",
     cameroon: "cameroon_background.jpg",
+    usa: "usa_background.jpg"
   };
   const backgroundImage = locationBackgrounds[selectedLocation];
 
