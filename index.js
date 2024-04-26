@@ -126,7 +126,11 @@ bot.on("callback_query", (query) => {
   if (backgroundImage) {
     const context = userContext.get(chatId);
     // Update the context with the selected location and background image
+
     context.location = selectedLocation;
+    if (selectedLocation.toLowerCase() === "usa") {
+      context.location = context.location.toUpperCase();
+    }
     context.backgroundImage = backgroundImage;
 
     // Remove the inline keyboard after the user has made a selection
