@@ -166,7 +166,7 @@ bot.on("message", async (msg) => {
     context.pledge = msg.text.replace(/[\uD800-\uDFFF]./g, "");
     bot.sendMessage(
       chatId,
-      "Please send your selfie or choose your favorite photo from your gallery."
+      "Please send your selfie or select your favorite photo from your gallery."
     );
     context.awaitingPledge = false;
     context.awaitingSelfie = true;
